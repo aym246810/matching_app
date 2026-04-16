@@ -43,5 +43,3 @@ npm run dev
 - **Python Command**: On 
 this system, use `py` to run Python scripts if `python` refers to a launcher or placeholder.
 - **Port Conflict**: If port 3000 or 5000 is already in use, you may need to stop the conflicting service or update the configuration.
-
-#test
