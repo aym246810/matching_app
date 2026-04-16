@@ -1,0 +1,91 @@
+/* --- ページ全体を中央に配置する --- */
+.moods-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* 横方向の中央揃え */
+  padding: 40px 20px;
+  min-height: 100vh; /* 画面の高さを最低でも画面いっぱいに */
+  background-color: #f7f2ea; /* 優しい背景色 */
+  font-family: sans-serif;
+}
+
+/* ヘッダーの余白と文字揃え */
+.moods-page__header {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+/* --- カードを縦に並べるリストの枠組み --- */
+
+.moods-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* カード同士の隙間（余白） */
+  width: 100%;
+  max-width: 400px; /* カードが横に広がりすぎないように制限 */
+}
+
+/* --- クリックできるカードのデザイン --- */
+.mood-card {
+  background-color: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px; /* 角を丸くする */
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); /* ほんのり影をつける */
+  
+  /* ↓ここが「ボタンっぽさ」を出す重要ポイント！ */
+  cursor: pointer; /* マウスカーソルを「指マーク」にする */
+  transition: all 0.2s ease; /* ホバー時の変化をフワッとさせる */
+}
+
+/* カードにマウスを乗せた時（ホバー時）のアクション */
+.mood-card:hover {
+  border-color: #3b82f6; /* 枠線を青く光らせる */
+  transform: translateY(-4px); /* 少し上にフワッと浮かす */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1); /* 影を濃くする */
+}
+
+/* カード内の文字デザイン */
+.mood-card__name {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #1e293b;
+}
+
+/* --- 選択済みのカードのデザイン（追加） --- */
+.mood-card.is-selected {
+  background-color: #f1f5f9; /* 少しグレーがかった色に */
+  border-color: #cbd5e1; /* 枠線を落ち着いた色に */
+  box-shadow: none; /* 影をなくして、押された（沈んだ）感を出す */
+  transform: translateY(2px); /* 物理的に少し下げる */
+  opacity: 0.6; /* 全体的に少し薄暗く（透明に）する */
+}
+
+/* 選択済みのカードはホバーしても浮き上がらないように上書き */
+.mood-card.is-selected:hover {
+  border-color: #cbd5e1;
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+/* --- 次へボタンのデザイン（追加） --- */
+.moods-page__next-btn {
+  margin-top: 40px;
+  padding: 12px 48px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #3b82f6; /* 鮮やかな青 */
+  border: none;
+  border-radius: 30px; /* 角を丸く */
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+
+.moods-page__next-btn:hover {
+  background-color: #2563eb; /* ホバーで少し濃い青に */
+}
