@@ -10,18 +10,19 @@ function ProductsCard({ name, price, description, image, alt, onConsider, onChoo
         />
       </div>
       <div className="product-card__body">
-        <p className="product-card__prompt">あなたのプロンプト</p>
         <h2 className="product-card__name">{name}</h2>
         <p className="product-card__price">価格：{price}円</p>
         <p className="product-card__note">{description}</p>
         <div className="product-card__actions">
-          <button
-            className="product-card__button product-card__button--ghost"
-            type="button"
-            onClick={onConsider}
-          >
-            気になる！
-          </button>
+          {onConsider && (
+            <button
+              className="product-card__button product-card__button--ghost"
+              type="button"
+              onClick={onConsider}
+            >
+              気になる！
+            </button>
+          )}
           <button
             className="product-card__button product-card__button--solid"
             type="button"

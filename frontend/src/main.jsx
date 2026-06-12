@@ -18,8 +18,13 @@ function AppRoot() {
   const [moodData, setMoodData] = useState(null)
   const [selectedProduct, setSelectedProduct] = useState(null)
 
+  const handleRestart = () => {
+    setSelectedProduct(null)
+    setMoodData(null)
+  }
+
   if (selectedProduct) {
-    return <RecomendPage product={selectedProduct} />
+    return <RecomendPage product={selectedProduct} onRestart={handleRestart} />
   }
 
   // 気分データが存在すれば ProductsPage を表示

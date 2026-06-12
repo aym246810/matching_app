@@ -1,14 +1,7 @@
 import { useEffect, useState } from 'react'
 import ProductsCard from './components/products_card'
-import crispyChickenImage from './assets/unnamed.jpg'
-import cheeseHashImage from './assets/unnamed (1).jpg'
-import custardChouxImage from './assets/unnamed (2).jpg'
-
-const productImages = {
-  'custard-choux': crispyChickenImage,
-  'cheese-hash': cheeseHashImage,
-  'crispy-chicken': custardChouxImage,
-}
+import { getProductImage } from './data/product_images'
+import { API_BASE } from './api'
 
 function ProductsPage({ initialData, onChoose }) {
   const [products, setProducts] = useState([])
@@ -17,10 +10,9 @@ function ProductsPage({ initialData, onChoose }) {
   const [maxCycles, setMaxCycles] = useState(3)
   const [selectedIds, setSelectedIds] = useState([])
   const [noMatchOption, setNoMatchOption] = useState(true)
+  const [isFinal, setIsFinal] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const API_BASE = 'http://localhost:5000/api'
 
   useEffect(() => {
     // initialData から初期化
@@ -62,6 +54,7 @@ function ProductsPage({ initialData, onChoose }) {
       setCycle(data.cycle || cycle)
       setMaxCycles(data.max_cycles || maxCycles)
       setNoMatchOption(Boolean(data.no_match_option))
+      setIsFinal(Boolean(data.is_final))
       setSelectedIds((prev) => [...prev, product.id])
       setError('')
     } catch (e) {
@@ -132,6 +125,7 @@ function ProductsPage({ initialData, onChoose }) {
       setCycle(data.cycle || cycle)
       setMaxCycles(data.max_cycles || maxCycles)
       setNoMatchOption(Boolean(data.no_match_option))
+      setIsFinal(Boolean(data.is_final))
       setError('')
     } catch (e) {
       setError('候補の更新に失敗しました。')
@@ -144,6 +138,9 @@ function ProductsPage({ initialData, onChoose }) {
     <div className="products-page">
       <header className="products-page__header">
         <h1 className="products-page__title">おすすめ3選（{cycle} / {maxCycles}）</h1>
+        {isFinal && (
+          <p className="products-page__subtitle">最終候補です。この中から選んでください！</p>
+        )}
       </header>
       {error && <p className="products-page__error">{error}</p>}
       {loading && <p className="products-page__error">読み込み中...</p>}
@@ -154,9 +151,9 @@ function ProductsPage({ initialData, onChoose }) {
             name={product.name}
             price={product.price}
             description={product.description}
-            image={productImages[product.image] || custardChouxImage}
+            image={getProductImage(product.image)}
             alt={product.alt}
-            onConsider={() => handleSelect(product)}
+            onConsider={isFinal ? null : () => handleSelect(product)}
             onChoose={() => handleChoose(product)}
           />
         ))}

@@ -4,12 +4,15 @@ import math
 import os
 import boto3
 import datetime
-from flask import Flask, request, jsonify
-from flask_cors import CORS 
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 from boto3.dynamodb.conditions import Key
 
-app = Flask(__name__)
-CORS(app)   
+# ビルド済みフロントエンド(frontend/dist)の場所。distが無くてもAPIは動作する。
+FRONTEND_DIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend", "dist")
+
+app = Flask(__name__, static_folder=None)
+CORS(app)
 
 # ── 定数 ──────────────────────────────────────────
 VECTOR_MAX           = 10
@@ -91,7 +94,10 @@ PRODUCTS = [
 dynamodb         = boto3.resource("dynamodb", region_name=os.environ.get("AWS_REGION", "ap-northeast-1"))
 TABLE_INVENTORY  = os.environ.get("TABLE_INVENTORY",  "Inventory")
 TABLE_PRODUCTS   = os.environ.get("TABLE_PRODUCTS",   "Products")
-BEDROCK_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-3-haiku-20240307-v1:0")
+# Claude 3 Haikuは2026年4月に廃止。後継のHaiku 4.5を日本リージョンプロファイル経由で使用
+BEDROCK_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "jp.anthropic.claude-haiku-4-5-20251001-v1:0")
+# Bedrockのクォータ制限が解消したら USE_BEDROCK=1 で有効化(現在は定型文コメントで運用)
+USE_BEDROCK      = os.environ.get("USE_BEDROCK", "0") == "1"
 
 
 # ── ユーティリティ関数 ────────────────────────────
@@ -124,7 +130,10 @@ def get_in_stock_products(store_id=1):
             r = prod_table.get_item(Key={"product_id": pid})
             if "Item" in r:
                 item = r["Item"]
-                item["vector"] = list(item.get("vector", []))
+                # DynamoDBはDecimal型を返すためint/floatに変換。idキーも揃える
+                item["id"]     = item.get("id", item.get("product_id"))
+                item["price"]  = int(item.get("price", 0))
+                item["vector"] = [int(v) for v in item.get("vector", [])]
                 products.append(item)
         return products if products else PRODUCTS
     except Exception:
@@ -143,10 +152,10 @@ def recommend(user_vector, products, exclude_ids=None, n=CANDIDATES_PER_CYCLE, t
     current = random.choice(candidates)
     samples = []
     for _ in range(mh_steps):
-        proposal         = random.choice(candidates)
-        p_c              = math.exp(get_score(current)  / temperature)
-        p_p              = math.exp(get_score(proposal) / temperature)
-        if random.random() < min(1, p_p / p_c):
+        proposal = random.choice(candidates)
+        # exp(sp)/exp(sc) = exp(sp-sc)。スコアが大きくてもオーバーフローしない
+        score_diff = (get_score(proposal) - get_score(current)) / temperature
+        if score_diff >= 0 or random.random() < math.exp(score_diff):
             current = proposal
         samples.append(current)
 
@@ -179,10 +188,12 @@ def product_to_json(product):
     }
 
 def generate_ai_comment(user_vector, chosen_product):
-    """Bedrockでレコメンド理由を1文生成"""
+    """Bedrockでレコメンド理由を1文生成。USE_BEDROCK=0なら定型文を即返す"""
     tag_scores = [(TAGS[i], user_vector[i]) for i in range(len(TAGS)) if user_vector[i] > 0]
     tag_scores.sort(key=lambda x: x[1], reverse=True)
     top_tags = [t for t, _ in tag_scores[:3]] or ["おいしい"]
+    if not USE_BEDROCK:
+        return f"「{', '.join(top_tags)}」な気分にぴったりの一品です！"
     prompt = (
         f"ユーザーは「{'」、「'.join(top_tags)}」に当てはまる商品を望んでいます。\n"
         f"おすすめ商品は「{chosen_product['name']}」です（{chosen_product['description']}）。\n"
@@ -310,9 +321,6 @@ def admin_inventory():
         if stock <= 5:  return "low"
         return "in_stock"
 
-    import datetime  
-
-
     updated = []
     try:
         inv_table = dynamodb.Table(TABLE_INVENTORY)
@@ -346,5 +354,22 @@ def admin_inventory():
             })
         return jsonify({"updated": updated, "warning": "DynamoDB未接続のためローカルのみ更新"})
 
+
+# ── フロントエンド配信 ─────────────────────────────
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_frontend(path):
+    """ビルド済みReactアプリを配信。/api/* 以外で実ファイルが無ければ index.html を返す。"""
+    if path.startswith("api/"):
+        return jsonify({"error": "not found"}), 404
+    if path and os.path.isfile(os.path.join(FRONTEND_DIST, path)):
+        return send_from_directory(FRONTEND_DIST, path)
+    if os.path.isfile(os.path.join(FRONTEND_DIST, "index.html")):
+        return send_from_directory(FRONTEND_DIST, "index.html")
+    return jsonify({"error": "frontend not built. run: cd frontend && npm run build"}), 404
+
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port  = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "1") == "1"
+    app.run(host="0.0.0.0", port=port, debug=debug)

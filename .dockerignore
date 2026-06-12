@@ -1,0 +1,14 @@
+# Docker build に不要なもの(イメージを軽く・速く)
+**/node_modules
+**/dist
+**/__pycache__
+**/*.pyc
+**/.venv
+**/venv
+**/.env
+.git
+.gitignore
+*.md
+商品画像/
+.vscode/
+.idea/

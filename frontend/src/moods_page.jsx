@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import MoodsCard from './components/moods_card';
 import moods from './data/moods.json';
+import { API_BASE } from './api';
 
 function MoodsPage({ onChoose }) {
   const [selectedMoods, setSelectedMoods] = useState([]);
@@ -29,7 +30,7 @@ function MoodsPage({ onChoose }) {
         .map((m) => m.name);
 
       // バックエンドの /api/mood エンドポイントに気分タグを送信
-      const response = await fetch('http://localhost:5000/api/mood', {
+      const response = await fetch(`${API_BASE}/mood`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

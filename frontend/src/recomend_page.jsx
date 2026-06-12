@@ -1,22 +1,14 @@
 import RecomendCard from './components/recomend'
-import custardChouxImage from './assets/unnamed.jpg'
-import cheeseHashImage from './assets/unnamed (1).jpg'
-import crispyChickenImage from './assets/unnamed (2).jpg'
+import { getProductImage } from './data/product_images'
 
-const productImages = {
-  'custard-choux': custardChouxImage,
-  'cheese-hash': cheeseHashImage,
-  'crispy-chicken': crispyChickenImage,
-}
-
-function RecomendPage({ product }) {
+function RecomendPage({ product, onRestart }) {
   if (!product) {
     return null
   }
 
   const item = {
     ...product,
-    image: productImages[product.image] || custardChouxImage,
+    image: getProductImage(product.image),
     reason: product.reason || product.ai_comment || '今の気分にぴったりの一品です。',
   }
 
@@ -29,6 +21,17 @@ function RecomendPage({ product }) {
       <section className="recommend-grid">
         <RecomendCard {...item} />
       </section>
+      {onRestart && (
+        <div className="recommend-page__header">
+          <button
+            type="button"
+            className="product-card__button product-card__button--ghost"
+            onClick={onRestart}
+          >
+            最初からやり直す
+          </button>
+        </div>
+      )}
     </div>
   )
 }

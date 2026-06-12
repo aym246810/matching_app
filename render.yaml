@@ -1,0 +1,13 @@
+# Render の Blueprint 定義。
+# リポジトリをRenderに接続すると、この定義どおりに無料Webサービスが作られる。
+services:
+  - type: web
+    name: matching-app
+    runtime: docker
+    plan: free            # 無料枠(15分アクセスが無いとスリープ、次回アクセスで再起動)
+    dockerfilePath: ./Dockerfile
+    envVars:
+      # 無料公開モード: ローカル商品データ＋定型コメントで動作(AWS不要)。
+      # AWSを有効化したい場合はここを "1" にし、AWS認証情報も設定する。
+      - key: USE_BEDROCK
+        value: "0"

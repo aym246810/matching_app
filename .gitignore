@@ -31,3 +31,6 @@ Thumbs.db
 .cursorignore
 .cursorindexingignore
 .ruff_cache/
+
+# 生画像の原本(frontend/src/assets/products に同じ画像があるためアプリでは未使用)
+商品画像/
