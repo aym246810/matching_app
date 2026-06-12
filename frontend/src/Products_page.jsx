@@ -9,6 +9,7 @@ function ProductsPage({ initialData, onChoose }) {
   const [cycle, setCycle] = useState(1)
   const [maxCycles, setMaxCycles] = useState(3)
   const [selectedIds, setSelectedIds] = useState([])
+  const [selectedProducts, setSelectedProducts] = useState([])
   const [noMatchOption, setNoMatchOption] = useState(true)
   const [isFinal, setIsFinal] = useState(false)
   const [error, setError] = useState('')
@@ -23,6 +24,7 @@ function ProductsPage({ initialData, onChoose }) {
       setMaxCycles(initialData.maxCycles || 3)
       setNoMatchOption(Boolean(initialData.noMatchOption))
       setSelectedIds([])
+      setSelectedProducts([])
       setError('')
     }
   }, [])
@@ -56,6 +58,9 @@ function ProductsPage({ initialData, onChoose }) {
       setNoMatchOption(Boolean(data.no_match_option))
       setIsFinal(Boolean(data.is_final))
       setSelectedIds((prev) => [...prev, product.id])
+      setSelectedProducts((prev) =>
+        prev.some((p) => p.id === product.id) ? prev : [...prev, product]
+      )
       setError('')
     } catch (e) {
       setError('商品の送信に失敗しました。')
@@ -158,6 +163,34 @@ function ProductsPage({ initialData, onChoose }) {
           />
         ))}
       </section>
+      {selectedProducts.length > 0 && (
+        <section className="selected-products">
+          <h2 className="selected-products__title">気になったもの</h2>
+          <div className="selected-products__list">
+            {selectedProducts.map((product) => (
+              <article key={product.id} className="selected-card">
+                <img
+                  className="selected-card__image"
+                  src={getProductImage(product.image)}
+                  alt={product.alt || product.name}
+                  loading="lazy"
+                />
+                <div className="selected-card__body">
+                  <h3 className="selected-card__name">{product.name}</h3>
+                  <p className="selected-card__price">価格：{product.price}円</p>
+                </div>
+                <button
+                  type="button"
+                  className="product-card__button product-card__button--solid"
+                  onClick={() => handleChoose(product)}
+                >
+                  これにする！
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
       {noMatchOption && (
         <div className="products-page__header">
           <button type="button" className="product-card__button product-card__button--ghost" onClick={handleNoMatch}>
